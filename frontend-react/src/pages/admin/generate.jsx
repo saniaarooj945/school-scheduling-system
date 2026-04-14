@@ -34,8 +34,12 @@ export function AdminGeneratePage() {
     })
   }, [])
 
-  async function generate() {
+  const generate = async () => {
     try {
+      if (!form.academic_session_id) {
+        toast.error('Please select a session')
+        return
+      }
       const payload = {
         ...form,
         academic_session_id: Number(form.academic_session_id),
@@ -51,27 +55,39 @@ export function AdminGeneratePage() {
     }
   }
 
-  async function loadSchedule() {
-    if (!form.academic_session_id) return
-    const data = await requestJson({
-      method: 'GET',
-      url: '/actions/schedule.php',
-      params: {
-        academic_session_id: Number(form.academic_session_id),
-        semester: Number(form.semester),
-        section: form.section,
-      },
-    })
-    setSchedule(data.list || [])
+  const loadSchedule = async () => {
+    if (!form.academic_session_id) {
+      toast.error('Please select a session')
+      return
+    }
+    try {
+      const data = await requestJson({
+        method: 'GET',
+        url: '/actions/schedule.php',
+        params: {
+          academic_session_id: Number(form.academic_session_id),
+          semester: Number(form.semester),
+          section: form.section,
+        },
+      })
+      setSchedule(data.list || [])
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'Failed to load schedule')
+    }
   }
 
-  async function moveSchedule() {
+  const moveSchedule = async () => {
     try {
+      const scheduleId = Number(move.schedule_id)
+      if (!Number.isInteger(scheduleId) || scheduleId <= 0) {
+        toast.error('Please select a valid schedule')
+        return
+      }
       const result = await requestJson({
         method: 'POST',
         url: '/actions/schedule_move.php',
         data: {
-          schedule_id: Number(move.schedule_id),
+          schedule_id: scheduleId,
           room_id: move.room_id ? Number(move.room_id) : undefined,
           time_slot_id: move.time_slot_id ? Number(move.time_slot_id) : undefined,
         },
@@ -129,7 +145,21 @@ export function AdminGeneratePage() {
       <Card className="border-slate-200 shadow-sm">
         <CardHeader className="pb-3"><CardTitle>Manual Move</CardTitle></CardHeader>
         <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-3">
-          <div><Label>Schedule ID</Label><Input value={move.schedule_id} onChange={(e) => setMove((prev) => ({ ...prev, schedule_id: e.target.value }))} /></div>
+          <div>
+            <Label>Schedule</Label>
+            <select
+              className="mt-1 h-10 w-full rounded-md border border-slate-300 bg-white px-3"
+              value={move.schedule_id}
+              onChange={(e) => setMove((prev) => ({ ...prev, schedule_id: e.target.value }))}
+            >
+              <option value="">-- Select schedule --</option>
+              {schedule.map((row) => (
+                <option key={row.id} value={row.id}>
+                  {row.id} - {row.course_code} ({row.slot_label})
+                </option>
+              ))}
+            </select>
+          </div>
           <div>
             <Label>Room</Label>
             <select className="mt-1 h-10 w-full rounded-md border border-slate-300 bg-white px-3" value={move.room_id} onChange={(e) => setMove((prev) => ({ ...prev, room_id: e.target.value }))}>
