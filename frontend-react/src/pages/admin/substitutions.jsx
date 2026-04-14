@@ -12,7 +12,7 @@ export function AdminSubstitutionsPage() {
   const [notesById, setNotesById] = useState({})
 
   async function load() {
-    const data = await requestJson({ method: 'GET', url: '/actions/substitution.php' })
+    const data = await requestJson({ method: 'GET', url: '/actions/substitution' })
     setRows(data || [])
   }
 
@@ -24,7 +24,7 @@ export function AdminSubstitutionsPage() {
     try {
       const result = await requestJson({
         method: 'PUT',
-        url: '/actions/substitution.php',
+        url: '/actions/substitution',
         data: { id, status, admin_notes: notesById[id] || '' },
       })
       toast.success(result.message || 'Updated')

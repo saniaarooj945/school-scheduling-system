@@ -4,7 +4,9 @@ export function AdminSessionsPage() {
   return (
     <EntityManager
       title="Academic Sessions"
-      endpoint="/actions/sessions.php"
+      endpoint="/actions/sessions"
+      formInModal
+      createLabel="Add Session"
       columns={[
         { key: 'name', label: 'Name' },
         { key: 'start_date', label: 'Start Date' },

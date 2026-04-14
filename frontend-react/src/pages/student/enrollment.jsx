@@ -12,7 +12,7 @@ export function StudentEnrollmentPage() {
 
   async function load() {
     try {
-      const data = await requestJson({ method: 'GET', url: '/actions/enrollment.php' })
+      const data = await requestJson({ method: 'GET', url: '/actions/enrollment' })
       const payload = data.data || data
       setRows(payload.courses || [])
       setSessionId(String(payload.academic_session_id || ''))
@@ -30,7 +30,7 @@ export function StudentEnrollmentPage() {
     try {
       const result = await requestJson({
         method: 'POST',
-        url: '/actions/enrollment.php',
+        url: '/actions/enrollment',
         data: { course_id: Number(courseId), academic_session_id: Number(sessionId) },
       })
       toast.success(result.message || 'Enrolled')
@@ -41,26 +41,26 @@ export function StudentEnrollmentPage() {
   }
 
   return (
-    <Card>
+    <Card className="border-slate-200 bg-[#f4f6fb] shadow-sm">
       <CardHeader>
-        <CardTitle>Course Enrollment</CardTitle>
-        <p className="text-sm text-muted-foreground">Current session: {sessionName || '-'}</p>
+        <CardTitle className="text-2xl font-bold text-slate-800">Course Enrollment</CardTitle>
+        <p className="text-sm text-slate-600">Current session: {sessionName || '-'}</p>
       </CardHeader>
       <CardContent>
-        <Table>
+        <Table className="overflow-hidden rounded-lg border border-slate-200 bg-white">
           <TableHeader>
-            <TableRow>
-              <TableHead>Code</TableHead>
-              <TableHead>Course Name</TableHead>
-              <TableHead>Semester</TableHead>
-              <TableHead>Credit Hours</TableHead>
-              <TableHead>Prerequisite</TableHead>
-              <TableHead>Action</TableHead>
+            <TableRow className="bg-slate-100 hover:bg-slate-100">
+              <TableHead className="bg-slate-100 font-semibold text-slate-700">Code</TableHead>
+              <TableHead className="bg-slate-100 font-semibold text-slate-700">Course Name</TableHead>
+              <TableHead className="bg-slate-100 font-semibold text-slate-700">Semester</TableHead>
+              <TableHead className="bg-slate-100 font-semibold text-slate-700">Credit Hours</TableHead>
+              <TableHead className="bg-slate-100 font-semibold text-slate-700">Prerequisite</TableHead>
+              <TableHead className="bg-slate-100 font-semibold text-slate-700">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {rows.map((row) => (
-              <TableRow key={row.id}>
+              <TableRow key={row.id} className="odd:bg-white even:bg-slate-50/80">
                 <TableCell>{row.code}</TableCell>
                 <TableCell>{row.name}</TableCell>
                 <TableCell>{row.semester}</TableCell>
@@ -70,7 +70,9 @@ export function StudentEnrollmentPage() {
                   {row.enrolled ? (
                     <span className="text-sm font-medium text-green-600">Enrolled</span>
                   ) : (
-                    <Button size="sm" onClick={() => enroll(row.id)}>Enroll</Button>
+                    <Button size="sm" className="bg-blue-600 text-white hover:bg-blue-700" onClick={() => enroll(row.id)}>
+                      Enroll
+                    </Button>
                   )}
                 </TableCell>
               </TableRow>

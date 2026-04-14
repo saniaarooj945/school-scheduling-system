@@ -8,7 +8,7 @@ export function FacultyTimetablePage() {
   const [rows, setRows] = useState([])
 
   useEffect(() => {
-    requestJson({ method: 'GET', url: '/actions/sessions.php' }).then((data) => {
+    requestJson({ method: 'GET', url: '/actions/sessions' }).then((data) => {
       setSessions(data || [])
       if (data?.[0]?.id) setSessionId(String(data[0].id))
     })
@@ -18,7 +18,7 @@ export function FacultyTimetablePage() {
     if (!sessionId) return
     requestJson({
       method: 'GET',
-      url: '/actions/schedule.php',
+      url: '/actions/schedule',
       params: { academic_session_id: Number(sessionId) },
     }).then((data) => setRows(data.list || []))
   }, [sessionId])

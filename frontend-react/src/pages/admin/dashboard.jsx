@@ -4,12 +4,12 @@ import { Link } from 'react-router-dom'
 import { fetchPaged } from '@/lib/crud'
 
 const cards = [
-  { key: 'departments', title: 'Departments', endpoint: '/actions/departments.php' },
-  { key: 'courses', title: 'Courses', endpoint: '/actions/courses.php' },
-  { key: 'faculty', title: 'Faculty', endpoint: '/actions/faculty.php' },
-  { key: 'students', title: 'Students', endpoint: '/actions/students.php' },
-  { key: 'rooms', title: 'Rooms', endpoint: '/actions/rooms.php' },
-  { key: 'sessions', title: 'Sessions', endpoint: '/actions/sessions.php' },
+  { key: 'departments', title: 'Departments', endpoint: '/actions/departments' },
+  { key: 'courses', title: 'Courses', endpoint: '/actions/courses' },
+  { key: 'faculty', title: 'Faculty', endpoint: '/actions/faculty' },
+  { key: 'students', title: 'Students', endpoint: '/actions/students' },
+  { key: 'rooms', title: 'Rooms', endpoint: '/actions/rooms' },
+  { key: 'sessions', title: 'Sessions', endpoint: '/actions/sessions' },
 ]
 
 export function AdminDashboardPage() {

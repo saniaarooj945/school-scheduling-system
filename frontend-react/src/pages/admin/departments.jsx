@@ -4,7 +4,9 @@ export function AdminDepartmentsPage() {
   return (
     <EntityManager
       title="Departments"
-      endpoint="/actions/departments.php"
+      endpoint="/actions/departments"
+      formInModal
+      createLabel="Add Department"
       columns={[
         { key: 'name', label: 'Name' },
         { key: 'code', label: 'Code' },

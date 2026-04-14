@@ -39,6 +39,47 @@ const to12h = (timeText) => {
   return `${hour12}:${mRaw} ${ampm}`
 }
 
+const escapePdfText = (value) => String(value ?? '').replaceAll('\\', '\\\\').replaceAll('(', '\\(').replaceAll(')', '\\)')
+
+const buildSimplePdfBuffer = (title, lines) => {
+  const safeLines = [title, '', ...lines].map((line) => escapePdfText(line))
+  const lineHeight = 14
+  const fontSize = 11
+  const topY = 800
+  const contentParts = ['BT', '/F1 11 Tf']
+  for (let i = 0; i < safeLines.length; i += 1) {
+    const y = topY - i * lineHeight
+    if (y < 40) break
+    contentParts.push(`1 0 0 1 40 ${y} Tm (${safeLines[i]}) Tj`)
+  }
+  contentParts.push('ET')
+  const stream = `${contentParts.join('\n')}\n`
+  const streamLen = Buffer.byteLength(stream, 'utf8')
+
+  const objects = [
+    '1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n',
+    '2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj\n',
+    '3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >> endobj\n',
+    '4 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj\n',
+    `5 0 obj << /Length ${streamLen} >> stream\n${stream}endstream endobj\n`,
+  ]
+
+  let pdf = '%PDF-1.4\n'
+  const offsets = [0]
+  for (const objectText of objects) {
+    offsets.push(Buffer.byteLength(pdf, 'utf8'))
+    pdf += objectText
+  }
+  const xrefStart = Buffer.byteLength(pdf, 'utf8')
+  pdf += `xref\n0 ${objects.length + 1}\n`
+  pdf += '0000000000 65535 f \n'
+  for (let i = 1; i < offsets.length; i += 1) {
+    pdf += `${String(offsets[i]).padStart(10, '0')} 00000 n \n`
+  }
+  pdf += `trailer << /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefStart}\n%%EOF`
+  return Buffer.from(pdf, 'utf8')
+}
+
 const apiError = (res, message, status = 400) => res.status(status).json({ success: false, message })
 
 const parseBody = (req) => (req.body && typeof req.body === 'object' ? req.body : {})
@@ -63,7 +104,7 @@ const withDepartmentName = async (rows) => {
 
 router.use(requireAuth)
 
-router.get('/departments.php', requireRole('admin'), async (req, res, next) => {
+router.get('/departments', requireRole('admin'), async (req, res, next) => {
   try {
     const id = parseId(req.query.id)
     if (id) {
@@ -100,7 +141,7 @@ router.get('/departments.php', requireRole('admin'), async (req, res, next) => {
   }
 })
 
-router.post('/departments.php', requireRole('admin'), async (req, res, next) => {
+router.post('/departments', requireRole('admin'), async (req, res, next) => {
   try {
     const body = parseBody(req)
     const name = asTrimmed(body.name)
@@ -120,7 +161,7 @@ router.post('/departments.php', requireRole('admin'), async (req, res, next) => 
   }
 })
 
-router.put('/departments.php', requireRole('admin'), async (req, res, next) => {
+router.put('/departments', requireRole('admin'), async (req, res, next) => {
   try {
     const body = parseBody(req)
     const id = parseId(body.id)
@@ -142,7 +183,7 @@ router.put('/departments.php', requireRole('admin'), async (req, res, next) => {
   }
 })
 
-router.delete('/departments.php', requireRole('admin'), async (req, res, next) => {
+router.delete('/departments', requireRole('admin'), async (req, res, next) => {
   try {
     const body = parseBody(req)
     const id = parseId(body.id || req.query.id)
@@ -154,7 +195,7 @@ router.delete('/departments.php', requireRole('admin'), async (req, res, next) =
   }
 })
 
-router.get('/sessions.php', async (req, res, next) => {
+router.get('/sessions', async (req, res, next) => {
   try {
     const id = parseId(req.query.id)
     if (id) {
@@ -184,7 +225,7 @@ router.get('/sessions.php', async (req, res, next) => {
   }
 })
 
-router.post('/sessions.php', requireRole('admin'), async (req, res, next) => {
+router.post('/sessions', requireRole('admin'), async (req, res, next) => {
   try {
     const body = parseBody(req)
     const name = asTrimmed(body.name)
@@ -200,7 +241,7 @@ router.post('/sessions.php', requireRole('admin'), async (req, res, next) => {
   }
 })
 
-router.put('/sessions.php', requireRole('admin'), async (req, res) => {
+router.put('/sessions', requireRole('admin'), async (req, res) => {
   const body = parseBody(req)
   const id = parseId(body.id)
   if (!id) return apiError(res, 'Invalid session.')
@@ -217,7 +258,7 @@ router.put('/sessions.php', requireRole('admin'), async (req, res) => {
   return res.json({ success: true, message: 'Session updated.' })
 })
 
-router.delete('/sessions.php', requireRole('admin'), async (req, res) => {
+router.delete('/sessions', requireRole('admin'), async (req, res) => {
   const body = parseBody(req)
   const id = parseId(body.id || req.query.id)
   if (!id) return apiError(res, 'Invalid session.')
@@ -229,7 +270,7 @@ router.delete('/sessions.php', requireRole('admin'), async (req, res) => {
   }
 })
 
-router.get('/courses.php', requireRole('admin'), async (req, res, next) => {
+router.get('/courses', requireRole('admin'), async (req, res, next) => {
   try {
     const id = parseId(req.query.id)
     if (id) {
@@ -275,7 +316,7 @@ router.get('/courses.php', requireRole('admin'), async (req, res, next) => {
   }
 })
 
-router.post('/courses.php', requireRole('admin'), async (req, res) => {
+router.post('/courses', requireRole('admin'), async (req, res) => {
   const body = parseBody(req)
   const code = asTrimmed(body.code)
   const name = asTrimmed(body.name)
@@ -303,7 +344,7 @@ router.post('/courses.php', requireRole('admin'), async (req, res) => {
   }
 })
 
-router.put('/courses.php', requireRole('admin'), async (req, res) => {
+router.put('/courses', requireRole('admin'), async (req, res) => {
   const body = parseBody(req)
   const id = parseId(body.id)
   if (!id) return apiError(res, 'Invalid course.')
@@ -326,7 +367,7 @@ router.put('/courses.php', requireRole('admin'), async (req, res) => {
   return res.json({ success: true, message: 'Course updated.' })
 })
 
-router.delete('/courses.php', requireRole('admin'), async (req, res) => {
+router.delete('/courses', requireRole('admin'), async (req, res) => {
   const body = parseBody(req)
   const id = parseId(body.id || req.query.id)
   if (!id) return apiError(res, 'Invalid course.')
@@ -335,7 +376,7 @@ router.delete('/courses.php', requireRole('admin'), async (req, res) => {
 })
 
 const peopleCrud = (entity, Model) => {
-  router.get(`/${entity}.php`, requireRole('admin'), async (req, res, next) => {
+  router.get(`/${entity}`, requireRole('admin'), async (req, res, next) => {
     try {
       const id = parseId(req.query.id)
       if (id) {
@@ -381,7 +422,7 @@ const peopleCrud = (entity, Model) => {
     }
   })
 
-  router.post(`/${entity}.php`, requireRole('admin'), async (req, res) => {
+  router.post(`/${entity}`, requireRole('admin'), async (req, res) => {
     const body = parseBody(req)
     const email = asTrimmed(body.email).toLowerCase()
     const fullName = asTrimmed(body.full_name)
@@ -424,7 +465,7 @@ const peopleCrud = (entity, Model) => {
     return res.json({ success: true, id, message: 'Student added.' })
   })
 
-  router.put(`/${entity}.php`, requireRole('admin'), async (req, res) => {
+  router.put(`/${entity}`, requireRole('admin'), async (req, res) => {
     const body = parseBody(req)
     const id = parseId(body.id)
     if (!id) return apiError(res, `Invalid ${entity === 'faculty' ? 'faculty' : 'students'}.`)
@@ -457,7 +498,7 @@ const peopleCrud = (entity, Model) => {
     return res.json({ success: true, message: `${entity === 'faculty' ? 'Faculty' : 'Students'} updated.` })
   })
 
-  router.delete(`/${entity}.php`, requireRole('admin'), async (req, res) => {
+  router.delete(`/${entity}`, requireRole('admin'), async (req, res) => {
     const body = parseBody(req)
     const id = parseId(body.id || req.query.id)
     if (!id) return apiError(res, `Invalid ${entity === 'faculty' ? 'faculty' : 'students'}.`)
@@ -469,7 +510,7 @@ const peopleCrud = (entity, Model) => {
 peopleCrud('faculty', Faculty)
 peopleCrud('students', Student)
 
-router.get('/rooms.php', requireRole('admin'), async (req, res, next) => {
+router.get('/rooms', requireRole('admin'), async (req, res, next) => {
   try {
     const id = parseId(req.query.id)
     if (id) {
@@ -502,7 +543,7 @@ router.get('/rooms.php', requireRole('admin'), async (req, res, next) => {
   }
 })
 
-router.post('/rooms.php', requireRole('admin'), async (req, res) => {
+router.post('/rooms', requireRole('admin'), async (req, res) => {
   const body = parseBody(req)
   const roomNumber = asTrimmed(body.room_number)
   if (!roomNumber) return apiError(res, 'Please enter room number.')
@@ -526,7 +567,7 @@ router.post('/rooms.php', requireRole('admin'), async (req, res) => {
   }
 })
 
-router.put('/rooms.php', requireRole('admin'), async (req, res) => {
+router.put('/rooms', requireRole('admin'), async (req, res) => {
   const body = parseBody(req)
   const id = parseId(body.id)
   if (!id) return apiError(res, 'Invalid room.')
@@ -545,7 +586,7 @@ router.put('/rooms.php', requireRole('admin'), async (req, res) => {
   return res.json({ success: true, message: 'Room updated.' })
 })
 
-router.delete('/rooms.php', requireRole('admin'), async (req, res) => {
+router.delete('/rooms', requireRole('admin'), async (req, res) => {
   const body = parseBody(req)
   const id = parseId(body.id || req.query.id)
   if (!id) return apiError(res, 'Invalid room.')
@@ -553,12 +594,12 @@ router.delete('/rooms.php', requireRole('admin'), async (req, res) => {
   return res.json({ success: true, message: 'Room removed.' })
 })
 
-router.get('/time_slots.php', async (req, res) => {
+router.get('/time_slots', async (req, res) => {
   const rows = await TimeSlot.find({}).sort({ day_of_week: 1, start_time: 1 }).lean()
   return res.json(rows)
 })
 
-router.get('/course_faculty.php', requireRole('admin'), async (req, res) => {
+router.get('/course_faculty', requireRole('admin'), async (req, res) => {
   const courseId = parseId(req.query.course_id)
   if (!courseId) return apiError(res, 'Invalid course.')
 
@@ -571,7 +612,7 @@ router.get('/course_faculty.php', requireRole('admin'), async (req, res) => {
   return res.json(faculty.map((f) => ({ id: f.id, full_name: f.full_name, email: f.email })))
 })
 
-router.post('/course_faculty.php', requireRole('admin'), async (req, res) => {
+router.post('/course_faculty', requireRole('admin'), async (req, res) => {
   const body = parseBody(req)
   const courseId = parseId(body.course_id)
   const facultyId = parseId(body.faculty_id)
@@ -584,7 +625,7 @@ router.post('/course_faculty.php', requireRole('admin'), async (req, res) => {
   return res.json({ success: true, message: 'Faculty assigned.' })
 })
 
-router.delete('/course_faculty.php', requireRole('admin'), async (req, res) => {
+router.delete('/course_faculty', requireRole('admin'), async (req, res) => {
   const body = parseBody(req)
   const courseId = parseId(body.course_id || req.query.course_id)
   const facultyId = parseId(body.faculty_id || req.query.faculty_id)
@@ -594,19 +635,19 @@ router.delete('/course_faculty.php', requireRole('admin'), async (req, res) => {
   return res.json({ success: true, message: 'Faculty removed from course.' })
 })
 
-router.get('/faculty_availability.php', requireRole('faculty'), async (req, res) => {
+router.get('/faculty_availability', requireRole('faculty'), async (req, res) => {
   const row = await Faculty.findOne({ id: parseId(req.user.sub) }).lean()
   return res.json({ availability_notes: row?.availability_notes || '' })
 })
 
-router.post('/faculty_availability.php', requireRole('faculty'), async (req, res) => {
+router.post('/faculty_availability', requireRole('faculty'), async (req, res) => {
   const body = parseBody(req)
   const notes = asTrimmed(body.availability_notes)
   await Faculty.updateOne({ id: parseId(req.user.sub) }, { $set: { availability_notes: notes } })
   return res.json({ success: true, message: 'Preferences saved.' })
 })
 
-router.get('/schedule.php', async (req, res) => {
+router.get('/schedule', async (req, res) => {
   const sessionId = parseId(req.query.academic_session_id)
   const facultyIdParam = parseId(req.query.faculty_id)
   if (!sessionId && !facultyIdParam) return apiError(res, 'academic_session_id or faculty_id required')
@@ -698,7 +739,7 @@ router.get('/schedule.php', async (req, res) => {
   return res.json({ success: true, list })
 })
 
-router.post('/schedule_move.php', requireRole('admin'), async (req, res) => {
+router.post('/schedule_move', requireRole('admin'), async (req, res) => {
   const body = parseBody(req)
   const scheduleId = parseId(body.schedule_id)
   const nextRoomId = parseId(body.room_id)
@@ -736,7 +777,7 @@ router.post('/schedule_move.php', requireRole('admin'), async (req, res) => {
   return res.json({ success: true, message: 'Schedule updated.' })
 })
 
-router.get('/enrollment.php', requireRole('student'), async (req, res) => {
+router.get('/enrollment', requireRole('student'), async (req, res) => {
   const studentId = parseId(req.user.sub)
   const stu = await Student.findOne({ id: studentId }).lean()
   if (!stu) return apiError(res, 'Student not found.')
@@ -785,7 +826,7 @@ router.get('/enrollment.php', requireRole('student'), async (req, res) => {
   })
 })
 
-router.post('/enrollment.php', requireRole('student'), async (req, res) => {
+router.post('/enrollment', requireRole('student'), async (req, res) => {
   const body = parseBody(req)
   const studentId = parseId(req.user.sub)
   const courseId = parseId(body.course_id)
@@ -830,7 +871,7 @@ router.post('/enrollment.php', requireRole('student'), async (req, res) => {
   return res.json({ success: true, message: 'Enrolled successfully.' })
 })
 
-router.get('/substitution.php', async (req, res) => {
+router.get('/substitution', async (req, res) => {
   const filter = req.user.role === 'faculty' ? { faculty_id: parseId(req.user.sub) } : {}
   const rows = await SubstitutionRequest.find(filter).sort({ created_at: -1, id: -1 }).lean()
 
@@ -872,7 +913,7 @@ router.get('/substitution.php', async (req, res) => {
   )
 })
 
-router.post('/substitution.php', requireRole('faculty'), async (req, res) => {
+router.post('/substitution', requireRole('faculty'), async (req, res) => {
   const body = parseBody(req)
   const facultyId = parseId(req.user.sub)
   const scheduleId = parseId(body.schedule_id)
@@ -898,7 +939,7 @@ router.post('/substitution.php', requireRole('faculty'), async (req, res) => {
   return res.json({ success: true, message: 'Substitution request submitted.' })
 })
 
-router.put('/substitution.php', requireRole('admin'), async (req, res) => {
+router.put('/substitution', requireRole('admin'), async (req, res) => {
   const body = parseBody(req)
   const id = parseId(body.id)
   const status = asTrimmed(body.status).toLowerCase()
@@ -923,7 +964,7 @@ router.put('/substitution.php', requireRole('admin'), async (req, res) => {
   return res.json({ success: true, message: `Substitution request ${status}.` })
 })
 
-router.post('/generate.php', requireRole('admin'), async (req, res, next) => {
+router.post('/generate', requireRole('admin'), async (req, res, next) => {
   const startedAt = Date.now()
   try {
     const body = parseBody(req)
@@ -1030,7 +1071,7 @@ router.post('/generate.php', requireRole('admin'), async (req, res, next) => {
   }
 })
 
-router.get('/export.php', async (req, res) => {
+router.get('/export', async (req, res) => {
   const sessionId = parseId(req.query.academic_session_id)
   const format = asTrimmed(req.query.format).toLowerCase()
   if (!sessionId || !['csv', 'pdf', 'ics'].includes(format)) {
@@ -1102,14 +1143,15 @@ router.get('/export.php', async (req, res) => {
   }
 
   if (format === 'pdf') {
-    const htmlRows = rows
-      .map(
-        (r) =>
-          `<tr><td>${r.course_name} (${r.course_code})</td><td>${r.faculty_name}</td><td>${r.room_number}</td><td>${r.slot_label}</td><td>${to12h(r.start_time)} - ${to12h(r.end_time)}</td></tr>`
-      )
-      .join('')
-
-    return res.send(`<!doctype html><html><head><meta charset="utf-8"><title>Timetable</title><style>body{font-family:Arial,sans-serif}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:8px;text-align:left}</style></head><body><h2>Timetable</h2><table><thead><tr><th>Course</th><th>Faculty</th><th>Room</th><th>Slot</th><th>Time</th></tr></thead><tbody>${htmlRows}</tbody></table></body></html>`)
+    const lines = rows.map(
+      (r) =>
+        `${r.course_code} ${r.course_name} | ${r.faculty_name} | ${r.room_number} | ${r.slot_label} | ${to12h(r.start_time)} - ${to12h(r.end_time)}`
+    )
+    const pdfBuffer = buildSimplePdfBuffer(`Timetable Session ${sessionId}`, lines)
+    res.setHeader('Content-Type', 'application/pdf')
+    res.setHeader('Content-Disposition', `attachment; filename=timetable_${sessionId}.pdf`)
+    res.setHeader('Content-Length', String(pdfBuffer.length))
+    return res.send(pdfBuffer)
   }
 
   const sess = await AcademicSession.findOne({ id: sessionId }).lean()

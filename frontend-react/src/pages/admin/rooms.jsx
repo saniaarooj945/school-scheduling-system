@@ -10,7 +10,9 @@ export function AdminRoomsPage() {
   return (
     <EntityManager
       title="Rooms"
-      endpoint="/actions/rooms.php"
+      endpoint="/actions/rooms"
+      formInModal
+      createLabel="Add Room"
       columns={[
         { key: 'room_number', label: 'Room Number' },
         { key: 'capacity', label: 'Capacity' },

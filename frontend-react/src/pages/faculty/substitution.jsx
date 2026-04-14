@@ -16,7 +16,7 @@ export function FacultySubstitutionPage() {
   const [form, setForm] = useState({ schedule_id: '', requested_date: '', reason: '' })
 
   useEffect(() => {
-    requestJson({ method: 'GET', url: '/actions/sessions.php' }).then((data) => {
+    requestJson({ method: 'GET', url: '/actions/sessions' }).then((data) => {
       setSessions(data || [])
       if (data?.[0]?.id) setSessionId(String(data[0].id))
     })
@@ -25,25 +25,37 @@ export function FacultySubstitutionPage() {
 
   useEffect(() => {
     if (!sessionId) return
-    requestJson({ method: 'GET', url: '/actions/schedule.php', params: { academic_session_id: Number(sessionId) } }).then((data) => {
+    requestJson({ method: 'GET', url: '/actions/schedule', params: { academic_session_id: Number(sessionId) } }).then((data) => {
       setSchedule(data.list || [])
     })
   }, [sessionId])
 
-  async function loadRequests() {
-    const rows = await requestJson({ method: 'GET', url: '/actions/substitution.php' })
+  const loadRequests = async () => {
+    const rows = await requestJson({ method: 'GET', url: '/actions/substitution' })
     setRequests(rows || [])
   }
 
-  async function submit() {
+  const submit = async () => {
     try {
+      if (!form.schedule_id) {
+        toast.error('Please select a scheduled class')
+        return
+      }
+      if (!form.requested_date) {
+        toast.error('Please select requested date')
+        return
+      }
+      if (!String(form.reason || '').trim()) {
+        toast.error('Please enter a reason')
+        return
+      }
       const result = await requestJson({
         method: 'POST',
-        url: '/actions/substitution.php',
+        url: '/actions/substitution',
         data: {
           schedule_id: Number(form.schedule_id),
           requested_date: form.requested_date,
-          reason: form.reason,
+          reason: String(form.reason).trim(),
         },
       })
       toast.success(result.message || 'Submitted')

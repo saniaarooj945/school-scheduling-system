@@ -6,7 +6,7 @@ export function AdminStudentsPage() {
   const [departments, setDepartments] = useState([])
 
   useEffect(() => {
-    fetchList('/actions/departments.php').then((rows) => {
+    fetchList('/actions/departments').then((rows) => {
       setDepartments((rows || []).map((row) => ({ value: String(row.id), label: row.name })))
     })
   }, [])
@@ -14,7 +14,9 @@ export function AdminStudentsPage() {
   return (
     <EntityManager
       title="Students"
-      endpoint="/actions/students.php"
+      endpoint="/actions/students"
+      formInModal
+      createLabel="Add Student"
       columns={[
         { key: 'full_name', label: 'Name' },
         { key: 'email', label: 'Email' },

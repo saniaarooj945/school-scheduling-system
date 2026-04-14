@@ -94,44 +94,45 @@ export function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-200 px-4 py-12">
       <div className="w-full max-w-5xl">
-        <h1 className="mb-10 text-center text-4xl font-bold tracking-tight text-slate-700 md:text-6xl">
-          Automatic Timetable Management System
-        </h1>
-
         {!activePortal && (
-          <div className="mx-auto grid max-w-4xl gap-4 md:grid-cols-3">
-            {portalOptions.map((portal) => {
-              const palette =
-                portal.key === 'student'
-                  ? 'from-emerald-500 to-green-500 shadow-emerald-500/25'
-                  : portal.key === 'faculty'
-                    ? 'from-amber-500 to-orange-500 shadow-orange-500/25'
-                    : 'from-indigo-500 to-violet-500 shadow-violet-500/25'
+          <>
+            <h1 className="mb-10 text-center text-5xl font-extrabold tracking-tight text-slate-700">
+              Automatic Timetable Management System
+            </h1>
+            <div className="mx-auto grid max-w-4xl gap-4 md:grid-cols-3">
+              {portalOptions.map((portal) => {
+                const palette =
+                  portal.key === 'student'
+                    ? 'from-emerald-500 to-green-500 shadow-emerald-500/25'
+                    : portal.key === 'faculty'
+                      ? 'from-amber-500 to-orange-500 shadow-orange-500/25'
+                      : 'from-indigo-500 to-violet-500 shadow-violet-500/25'
 
-              const subtitle =
-                portal.key === 'student'
-                  ? 'View timetable & enroll in courses'
-                  : portal.key === 'faculty'
-                    ? 'View timetable & manage classes'
-                    : 'Manage data & generate timetable'
+                const subtitle =
+                  portal.key === 'student'
+                    ? 'View timetable & enroll in courses'
+                    : portal.key === 'faculty'
+                      ? 'View timetable & manage classes'
+                      : 'Manage data & generate timetable'
 
-              return (
-                <button
-                  key={portal.key}
-                  type="button"
-                  onClick={() => applyPortal(portal)}
-                  className={`rounded-2xl bg-gradient-to-r px-5 py-6 text-left text-white shadow-lg transition duration-150 hover:scale-[1.01] ${palette}`}
-                >
-                  <p className="text-[30px] font-extrabold leading-none">{portal.key === 'student' ? 'STUDENT DASHBOARD' : portal.key === 'faculty' ? 'FACULTY DASHBOARD' : 'ADMIN DASHBOARD'}</p>
-                  <p className="mt-3 text-base text-white/90">{subtitle}</p>
-                </button>
-              )
-            })}
-          </div>
+                return (
+                  <button
+                    key={portal.key}
+                    type="button"
+                    onClick={() => applyPortal(portal)}
+                    className={`rounded-2xl bg-gradient-to-r px-5 py-6 text-left text-white shadow-lg transition duration-150 hover:scale-[1.01] ${palette}`}
+                  >
+                    <p className="text-[30px] font-extrabold leading-none">{portal.key === 'student' ? 'STUDENT DASHBOARD' : portal.key === 'faculty' ? 'FACULTY DASHBOARD' : 'ADMIN DASHBOARD'}</p>
+                    <p className="mt-3 text-base text-white/90">{subtitle}</p>
+                  </button>
+                )
+              })}
+            </div>
+          </>
         )}
 
         {activePortal && (
-          <Card className="mx-auto mt-8 w-full max-w-md overflow-hidden border-slate-300 bg-white/95 shadow-lg">
+          <Card className="mx-auto w-full max-w-md overflow-hidden border-slate-300 bg-white/95 shadow-lg">
             <CardHeader className="bg-gradient-to-r from-indigo-500 to-violet-500 py-9 text-white">
               <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-indigo-700/40">
                 <Shield size={24} />

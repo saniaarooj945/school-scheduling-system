@@ -10,7 +10,7 @@ import { toast } from 'sonner'
 
 const PAGE_SIZES = [25, 50, 75, 100]
 
-function valueOf(field, formState) {
+const valueOf = (field, formState) => {
   if (field.type === 'number') return Number(formState[field.name] ?? 0)
   return formState[field.name] ?? ''
 }
@@ -24,6 +24,8 @@ export function EntityManager({
   defaultForm,
   afterLoad,
   extraActions,
+  formInModal = true,
+  createLabel,
 }) {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(false)
@@ -33,18 +35,24 @@ export function EntityManager({
   const [total, setTotal] = useState(0)
   const [editingId, setEditingId] = useState(null)
   const [formState, setFormState] = useState(defaultForm)
+  const [isFormOpen, setIsFormOpen] = useState(false)
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
 
-  async function load() {
+  const load = async (next = {}) => {
+    const currentPage = next.page ?? page
+    const currentPageSize = next.pageSize ?? pageSize
+    const currentQuery = next.query ?? query
     try {
       setLoading(true)
-      const data = await fetchPaged(endpoint, { page, pageSize, q: query })
+      const data = await fetchPaged(endpoint, { page: currentPage, pageSize: currentPageSize, q: currentQuery })
       setItems(data.items || [])
       setTotal(data.total || 0)
       if (afterLoad) afterLoad(data.items || [])
     } catch (error) {
-      toast.error(error?.response?.data?.message || 'Failed to load data')
+      const status = error?.response?.status
+      const message = error?.response?.data?.message || error?.message || 'Failed to load data'
+      toast.error(status ? `${status}: ${message}` : message)
     } finally {
       setLoading(false)
     }
@@ -54,17 +62,23 @@ export function EntityManager({
     load()
   }, [page, pageSize])
 
-  function onSearch() {
+  const onSearch = () => {
+    const normalizedQuery = String(query ?? '').trim()
+    setQuery(normalizedQuery)
     setPage(1)
-    load()
+    load({ page: 1, query: normalizedQuery })
   }
 
-  function resetForm() {
+  const resetForm = () => {
     setEditingId(null)
     setFormState(defaultForm)
+    setIsFormOpen(false)
+    setQuery('')
+    setPage(1)
+    load({ page: 1, query: '' })
   }
 
-  async function onSubmit(event) {
+  const onSubmit = async (event) => {
     event.preventDefault()
     try {
       let payload = fields.reduce((acc, field) => {
@@ -90,7 +104,7 @@ export function EntityManager({
     }
   }
 
-  async function onDelete(id) {
+  const onDelete = async (id) => {
     if (!window.confirm('Are you sure?')) return
     try {
       await deleteItem(endpoint, id)
@@ -103,37 +117,72 @@ export function EntityManager({
 
   const actionRenderer = useMemo(() => extraActions || (() => null), [extraActions])
 
+  const openCreateForm = () => {
+    setEditingId(null)
+    setFormState(defaultForm)
+    setIsFormOpen(true)
+  }
+
+  const openEditForm = (item) => {
+    setEditingId(item.id)
+    setFormState(
+      fields.reduce((acc, field) => {
+        acc[field.name] = item[field.name] ?? ''
+        return acc
+      }, {})
+    )
+    setIsFormOpen(true)
+  }
+
+  const shouldShowInlineForm = !formInModal
+  const showModalForm = formInModal && isFormOpen
+
   return (
     <div className="space-y-5">
-      <Card className="border-slate-200 shadow-sm">
-        <CardHeader className="pb-3">
-          <CardTitle>{title}</CardTitle>
+      <Card className="border-slate-200 bg-[#f4f6fb] shadow-sm">
+        <CardHeader className="flex flex-row items-center justify-between pb-3">
+          <CardTitle className="text-2xl font-bold text-slate-800">{title}</CardTitle>
+          {formInModal ? (
+            <Button
+              className="h-10 rounded-md bg-blue-600 px-4 text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-md"
+              onClick={openCreateForm}
+            >
+              {createLabel || `Add ${title}`}
+            </Button>
+          ) : null}
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 rounded-md border border-slate-200 bg-white p-3">
+            <Label className="text-sm font-semibold text-slate-700">Search</Label>
             <Input
-              placeholder="Search"
+              placeholder="Search by name or code"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="h-10 w-full max-w-sm bg-white md:w-72"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  onSearch()
+                }
+              }}
+              className="h-9 w-full max-w-sm bg-white md:w-72"
             />
-            <Button className="h-10 bg-blue-600 text-white hover:bg-blue-700" onClick={onSearch}>
+            <Button className="h-9 rounded-md bg-blue-600 text-white transition-all duration-200 hover:bg-blue-700" onClick={onSearch}>
               Search
             </Button>
-            <Button variant="outline" className="h-10 border-slate-300 bg-white" onClick={resetForm}>
+            <Button variant="outline" className="h-9 border-slate-300 bg-white" onClick={resetForm}>
               Reset Form
             </Button>
           </div>
 
-          <Table className="overflow-hidden rounded-lg border border-slate-200">
+          <Table className="overflow-hidden rounded-lg border border-slate-200 bg-white">
             <TableHeader>
               <TableRow className="bg-slate-100 hover:bg-slate-100">
                 {columns.map((column) => (
-                  <TableHead key={column.key} className="bg-slate-100 text-slate-700">
+                  <TableHead key={column.key} className="bg-slate-100 font-semibold text-slate-700">
                     {column.label}
                   </TableHead>
                 ))}
-                <TableHead className="bg-slate-100 text-slate-700">Actions</TableHead>
+                <TableHead className="bg-slate-100 font-semibold text-slate-700">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -147,7 +196,7 @@ export function EntityManager({
                 </TableRow>
               ) : (
                 items.map((item) => (
-                  <TableRow key={item.id}>
+                  <TableRow key={item.id} className="odd:bg-white even:bg-slate-50/80">
                     {columns.map((column) => (
                       <TableCell key={`${item.id}-${column.key}`}>
                         {column.render ? column.render(item) : item[column.key]}
@@ -158,19 +207,17 @@ export function EntityManager({
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => {
-                            setEditingId(item.id)
-                            setFormState(
-                              fields.reduce((acc, field) => {
-                                acc[field.name] = item[field.name] ?? ''
-                                return acc
-                              }, {})
-                            )
-                          }}
+                          className="rounded-md border-yellow-400 bg-yellow-400 text-slate-800 transition-all duration-200 hover:-translate-y-0.5 hover:border-yellow-500 hover:bg-yellow-500 hover:shadow-md"
+                          onClick={() => openEditForm(item)}
                         >
                           Edit
                         </Button>
-                        <Button size="sm" variant="destructive" onClick={() => onDelete(item.id)}>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          className="rounded-md bg-rose-500 text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-rose-600 hover:shadow-md"
+                          onClick={() => onDelete(item.id)}
+                        >
                           Delete
                         </Button>
                         {actionRenderer(item, load)}
@@ -183,8 +230,8 @@ export function EntityManager({
           </Table>
 
           <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-            <div className="text-sm text-muted-foreground">
-              Page {page} of {totalPages} · Total {total}
+            <div className="text-sm text-slate-600">
+              Showing page {page} of {totalPages} · Total {total}
             </div>
             <div className="flex items-center gap-2">
               <select
@@ -212,56 +259,119 @@ export function EntityManager({
         </CardContent>
       </Card>
 
-      <Card className="border-slate-200 shadow-sm">
-        <CardHeader className="pb-3">
-          <CardTitle>{editingId ? `Edit ${title}` : `Add ${title}`}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={onSubmit} className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {fields.map((field) => (
-              <div key={field.name} className={field.fullWidth ? 'md:col-span-2' : ''}>
-                <Label>{field.label}</Label>
-                {field.type === 'select' ? (
-                  <select
-                    className="mt-1 h-10 w-full rounded-md border border-slate-300 bg-white px-3"
-                    value={formState[field.name] ?? ''}
-                    onChange={(e) => setFormState((prev) => ({ ...prev, [field.name]: e.target.value }))}
-                    required={field.required}
-                  >
-                    <option value="">-- Select --</option>
-                    {(field.options || []).map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                ) : field.type === 'textarea' ? (
-                  <Textarea
-                    className="mt-1"
-                    value={formState[field.name] ?? ''}
-                    onChange={(e) => setFormState((prev) => ({ ...prev, [field.name]: e.target.value }))}
-                    required={field.required}
-                  />
-                ) : (
-                  <Input
-                    className="mt-1"
-                    type={field.type || 'text'}
-                    min={field.min}
-                    value={formState[field.name] ?? ''}
-                    onChange={(e) => setFormState((prev) => ({ ...prev, [field.name]: e.target.value }))}
-                    required={field.required}
-                  />
-                )}
+      {shouldShowInlineForm ? (
+        <Card className="border-slate-200 shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle>{editingId ? `Edit ${title}` : `Add ${title}`}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={onSubmit} className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {fields.map((field) => (
+                <div key={field.name} className={field.fullWidth ? 'md:col-span-2' : ''}>
+                  <Label>{field.label}</Label>
+                  {field.type === 'select' ? (
+                    <select
+                      className="mt-1 h-10 w-full rounded-md border border-slate-300 bg-white px-3"
+                      value={formState[field.name] ?? ''}
+                      onChange={(e) => setFormState((prev) => ({ ...prev, [field.name]: e.target.value }))}
+                      required={field.required}
+                    >
+                      <option value="">-- Select --</option>
+                      {(field.options || []).map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  ) : field.type === 'textarea' ? (
+                    <Textarea
+                      className="mt-1"
+                      value={formState[field.name] ?? ''}
+                      onChange={(e) => setFormState((prev) => ({ ...prev, [field.name]: e.target.value }))}
+                      required={field.required}
+                    />
+                  ) : (
+                    <Input
+                      className="mt-1"
+                      type={field.type || 'text'}
+                      min={field.min}
+                      value={formState[field.name] ?? ''}
+                      onChange={(e) => setFormState((prev) => ({ ...prev, [field.name]: e.target.value }))}
+                      required={field.required}
+                    />
+                  )}
+                </div>
+              ))}
+              <div className="md:col-span-2">
+                <Button type="submit" className="h-10 bg-blue-600 text-white hover:bg-blue-700">
+                  {editingId ? 'Update' : 'Create'}
+                </Button>
               </div>
-            ))}
-            <div className="md:col-span-2">
-              <Button type="submit" className="h-10 bg-blue-600 text-white hover:bg-blue-700">
-                {editingId ? 'Update' : 'Create'}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+            </form>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {showModalForm ? (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-[1px]">
+          <Card className="w-full max-w-2xl overflow-hidden border border-blue-100 bg-white shadow-2xl">
+            <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 pb-3">
+              <CardTitle className="text-white">{editingId ? `Edit ${title}` : `Add ${title}`}</CardTitle>
+            </CardHeader>
+            <CardContent className="bg-white">
+              <form onSubmit={onSubmit} className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {fields.map((field) => (
+                  <div key={field.name} className={field.fullWidth ? 'md:col-span-2' : ''}>
+                    <Label>{field.label}</Label>
+                    {field.type === 'select' ? (
+                      <select
+                        className="mt-1 h-10 w-full rounded-md border border-slate-300 bg-white px-3"
+                        value={formState[field.name] ?? ''}
+                        onChange={(e) => setFormState((prev) => ({ ...prev, [field.name]: e.target.value }))}
+                        required={field.required}
+                      >
+                        <option value="">-- Select --</option>
+                        {(field.options || []).map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    ) : field.type === 'textarea' ? (
+                      <Textarea
+                        className="mt-1"
+                        value={formState[field.name] ?? ''}
+                        onChange={(e) => setFormState((prev) => ({ ...prev, [field.name]: e.target.value }))}
+                        required={field.required}
+                      />
+                    ) : (
+                      <Input
+                        className="mt-1"
+                        type={field.type || 'text'}
+                        min={field.min}
+                        value={formState[field.name] ?? ''}
+                        onChange={(e) => setFormState((prev) => ({ ...prev, [field.name]: e.target.value }))}
+                        required={field.required}
+                      />
+                    )}
+                  </div>
+                ))}
+                <div className="flex gap-2 md:col-span-2">
+                  <Button
+                    type="submit"
+                    className="h-10 bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700"
+                  >
+                    {editingId ? 'Update' : 'Create'}
+                  </Button>
+                  <Button type="button" variant="outline" onClick={resetForm}>
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      ) : null}
     </div>
   )
 }

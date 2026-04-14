@@ -94,5 +94,6 @@
   }
   html {
     @apply font-sans;
+    font-size: clamp(12px, 0.75vw + 10px, 14px);
   }
 }

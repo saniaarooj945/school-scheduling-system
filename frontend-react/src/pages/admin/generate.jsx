@@ -19,10 +19,10 @@ export function AdminGeneratePage() {
 
   useEffect(() => {
     Promise.all([
-      fetchList('/actions/sessions.php'),
-      fetchList('/actions/courses.php'),
-      fetchList('/actions/rooms.php'),
-      fetchList('/actions/time_slots.php'),
+      fetchList('/actions/sessions'),
+      fetchList('/actions/courses'),
+      fetchList('/actions/rooms'),
+      fetchList('/actions/time_slots'),
     ]).then(([sessionRows, courseRows, roomRows, slotRows]) => {
       setSessions(sessionRows || [])
       setCourses(courseRows || [])
@@ -47,7 +47,7 @@ export function AdminGeneratePage() {
         clear_first: Boolean(form.clear_first),
         course_ids: selectedCourseIds,
       }
-      const result = await requestJson({ method: 'POST', url: '/actions/generate.php', data: payload })
+      const result = await requestJson({ method: 'POST', url: '/actions/generate', data: payload })
       toast.success(result.message || 'Timetable generated')
       loadSchedule()
     } catch (error) {
@@ -63,7 +63,7 @@ export function AdminGeneratePage() {
     try {
       const data = await requestJson({
         method: 'GET',
-        url: '/actions/schedule.php',
+        url: '/actions/schedule',
         params: {
           academic_session_id: Number(form.academic_session_id),
           semester: Number(form.semester),
@@ -85,7 +85,7 @@ export function AdminGeneratePage() {
       }
       const result = await requestJson({
         method: 'POST',
-        url: '/actions/schedule_move.php',
+        url: '/actions/schedule_move',
         data: {
           schedule_id: scheduleId,
           room_id: move.room_id ? Number(move.room_id) : undefined,
