@@ -50,10 +50,8 @@
     @apply bg-background text-foreground;
     margin: 0;
     font-family: 'Geist Variable', 'Segoe UI', sans-serif;
-    background-image:
-      radial-gradient(circle at 10% 15%, color-mix(in oklch, var(--primary) 18%, transparent), transparent 38%),
-      radial-gradient(circle at 92% 22%, color-mix(in oklch, var(--accent) 35%, transparent), transparent 30%),
-      linear-gradient(180deg, color-mix(in oklch, var(--background) 90%, white), var(--background));
+    background-color: #edf2f7;
+    background-image: none;
     min-height: 100vh;
   }
   .dark {

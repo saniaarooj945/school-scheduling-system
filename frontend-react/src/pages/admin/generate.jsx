@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { TableEmptyState } from '@/components/shared/table-empty-state'
 import { fetchList, requestJson } from '@/lib/api'
 import { toast } from 'sonner'
 
@@ -100,13 +101,13 @@ export function AdminGeneratePage() {
   }
 
   return (
-    <div className="space-y-5">
-      <Card className="border-slate-200 shadow-sm">
-        <CardHeader className="pb-3"><CardTitle>Generate Timetable</CardTitle></CardHeader>
-        <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
+    <div className="space-y-6">
+      <Card className="rounded-[12px] border-slate-200/70 bg-white shadow-[0_1px_4px_rgba(15,23,42,0.06)]">
+        <CardHeader className="px-5 pb-4 pt-5"><CardTitle className="text-[28px] font-bold leading-none tracking-[-0.02em] text-slate-800">Generate Timetable</CardTitle></CardHeader>
+        <CardContent className="grid grid-cols-1 gap-4 px-5 pb-5 md:grid-cols-2 lg:grid-cols-4">
           <div>
             <Label>Session</Label>
-            <select className="mt-1 h-10 w-full rounded-md border border-slate-300 bg-white px-3" value={form.academic_session_id} onChange={(e) => setForm((prev) => ({ ...prev, academic_session_id: e.target.value }))}>
+            <select className="mt-1 h-10 w-full rounded-[8px] border border-slate-300 bg-white px-3" value={form.academic_session_id} onChange={(e) => setForm((prev) => ({ ...prev, academic_session_id: e.target.value }))}>
               <option value="">-- Select --</option>
               {sessions.map((session) => <option key={session.id} value={session.id}>{session.name}</option>)}
             </select>
@@ -118,7 +119,7 @@ export function AdminGeneratePage() {
           </div>
           <div className="md:col-span-2 lg:col-span-4">
             <Label>Include Courses (optional)</Label>
-            <div className="mt-2 grid max-h-40 grid-cols-1 gap-1 overflow-auto rounded-md border p-2 md:grid-cols-2">
+            <div className="mt-2 grid max-h-44 grid-cols-1 gap-1 overflow-auto rounded-[10px] border p-3 md:grid-cols-2">
               {courses.map((course) => (
                 <label key={course.id} className="flex items-center gap-2 text-sm">
                   <input
@@ -136,19 +137,19 @@ export function AdminGeneratePage() {
             </div>
           </div>
           <div className="flex gap-2 md:col-span-2 lg:col-span-4">
-            <Button className="h-10 bg-blue-600 text-white hover:bg-blue-700" onClick={generate}>Generate</Button>
-            <Button variant="outline" className="h-10 border-slate-300 bg-white" onClick={loadSchedule}>Load Schedule</Button>
+            <Button className="h-11 rounded-[8px] bg-blue-600 px-5 text-white hover:bg-blue-700" onClick={generate}>Generate</Button>
+            <Button variant="outline" className="h-11 rounded-[8px] border-slate-300 bg-white px-5" onClick={loadSchedule}>Load Schedule</Button>
           </div>
         </CardContent>
       </Card>
 
-      <Card className="border-slate-200 shadow-sm">
-        <CardHeader className="pb-3"><CardTitle>Manual Move</CardTitle></CardHeader>
-        <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-3">
+      <Card className="rounded-[12px] border-slate-200/70 bg-white shadow-[0_1px_4px_rgba(15,23,42,0.06)]">
+        <CardHeader className="px-5 pb-4 pt-5"><CardTitle className="text-[22px] font-bold leading-none tracking-[-0.01em] text-slate-800">Manual Move</CardTitle></CardHeader>
+        <CardContent className="grid grid-cols-1 gap-4 px-5 pb-5 md:grid-cols-3">
           <div>
             <Label>Schedule</Label>
             <select
-              className="mt-1 h-10 w-full rounded-md border border-slate-300 bg-white px-3"
+              className="mt-1 h-10 w-full rounded-[8px] border border-slate-300 bg-white px-3"
               value={move.schedule_id}
               onChange={(e) => setMove((prev) => ({ ...prev, schedule_id: e.target.value }))}
             >
@@ -162,26 +163,26 @@ export function AdminGeneratePage() {
           </div>
           <div>
             <Label>Room</Label>
-            <select className="mt-1 h-10 w-full rounded-md border border-slate-300 bg-white px-3" value={move.room_id} onChange={(e) => setMove((prev) => ({ ...prev, room_id: e.target.value }))}>
+            <select className="mt-1 h-10 w-full rounded-[8px] border border-slate-300 bg-white px-3" value={move.room_id} onChange={(e) => setMove((prev) => ({ ...prev, room_id: e.target.value }))}>
               <option value="">-- Keep current --</option>
               {rooms.map((room) => <option key={room.id} value={room.id}>{room.room_number}</option>)}
             </select>
           </div>
           <div>
             <Label>Time Slot</Label>
-            <select className="mt-1 h-10 w-full rounded-md border border-slate-300 bg-white px-3" value={move.time_slot_id} onChange={(e) => setMove((prev) => ({ ...prev, time_slot_id: e.target.value }))}>
+            <select className="mt-1 h-10 w-full rounded-[8px] border border-slate-300 bg-white px-3" value={move.time_slot_id} onChange={(e) => setMove((prev) => ({ ...prev, time_slot_id: e.target.value }))}>
               <option value="">-- Keep current --</option>
               {slots.map((slot) => <option key={slot.id} value={slot.id}>{slot.slot_label}</option>)}
             </select>
           </div>
-          <div className="md:col-span-3"><Button className="h-10 bg-blue-600 text-white hover:bg-blue-700" onClick={moveSchedule}>Apply Move</Button></div>
+          <div className="md:col-span-3"><Button className="h-11 rounded-[8px] bg-blue-600 px-5 text-white hover:bg-blue-700" onClick={moveSchedule}>Apply Move</Button></div>
         </CardContent>
       </Card>
 
-      <Card className="border-slate-200 shadow-sm">
-        <CardHeader className="pb-3"><CardTitle>Schedule</CardTitle></CardHeader>
-        <CardContent>
-          <Table className="overflow-hidden rounded-lg border border-slate-200">
+      <Card className="rounded-[12px] border-slate-200/70 bg-white shadow-[0_1px_4px_rgba(15,23,42,0.06)]">
+        <CardHeader className="px-5 pb-4 pt-5"><CardTitle className="text-[22px] font-bold leading-none tracking-[-0.01em] text-slate-800">Schedule</CardTitle></CardHeader>
+        <CardContent className="px-5 pb-5">
+          <Table className="overflow-hidden rounded-[10px] border border-slate-200">
             <TableHeader>
               <TableRow className="bg-slate-100 hover:bg-slate-100">
                 <TableHead className="bg-slate-100 text-slate-700">ID</TableHead>
@@ -194,17 +195,21 @@ export function AdminGeneratePage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {schedule.map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell>{row.id}</TableCell>
-                  <TableCell>{row.course_code} - {row.course_name}</TableCell>
-                  <TableCell>{row.faculty_name}</TableCell>
-                  <TableCell>{row.room_number}</TableCell>
-                  <TableCell>{row.slot_label}</TableCell>
-                  <TableCell>{row.semester}</TableCell>
-                  <TableCell>{row.section}</TableCell>
-                </TableRow>
-              ))}
+              {schedule.length === 0 ? (
+                <TableEmptyState colSpan={7} title="No schedule data" message="Generate or load a schedule to view rows here." />
+              ) : (
+                schedule.map((row) => (
+                  <TableRow key={row.id}>
+                    <TableCell>{row.id}</TableCell>
+                    <TableCell>{row.course_code} - {row.course_name}</TableCell>
+                    <TableCell>{row.faculty_name}</TableCell>
+                    <TableCell>{row.room_number}</TableCell>
+                    <TableCell>{row.slot_label}</TableCell>
+                    <TableCell>{row.semester}</TableCell>
+                    <TableCell>{row.section}</TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>

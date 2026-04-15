@@ -110,14 +110,14 @@ export function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#e7ebf1] px-4 py-12">
+    <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,#f8fbff_0%,#e9eef5_42%,#e3e9f1_100%)] px-4 py-10">
       <div className="w-full max-w-[1080px]">
         {!activePortal && (
           <>
-            <h1 className="mb-8 text-center text-[48px] font-extrabold leading-tight tracking-tight text-slate-700 whitespace-nowrap">
+            <h1 className="mb-8 text-center text-[46px] font-extrabold leading-tight tracking-[-0.03em] text-slate-700 whitespace-nowrap">
               Automatic Timetable Management System
             </h1>
-            <div className="mx-auto grid max-w-[960px] gap-3 md:grid-cols-3">
+            <div className="mx-auto grid max-w-[960px] gap-4 md:grid-cols-3">
               {portalOptions.map((portal) => {
                 const palette =
                   portal.key === 'student'
@@ -138,12 +138,12 @@ export function LoginPage() {
                     key={portal.key}
                     type="button"
                     onClick={() => applyPortal(portal)}
-                    className={`rounded-2xl bg-gradient-to-r px-5 py-4 text-left text-white shadow-lg transition duration-150 hover:scale-[1.01] ${palette}`}
+                    className={`rounded-[18px] bg-gradient-to-r px-5 py-5 text-left text-white shadow-[0_12px_28px_rgba(37,99,235,0.18)] transition duration-150 hover:-translate-y-0.5 hover:shadow-[0_16px_34px_rgba(37,99,235,0.22)] ${palette}`}
                   >
-                    <p className="text-[28px] font-black leading-none tracking-wide text-white">
+                    <p className="text-[16px] font-black leading-none tracking-[-0.02em] text-white">
                       {portal.key === 'student' ? 'STUDENT DASHBOARD' : portal.key === 'faculty' ? 'FACULTY DASHBOARD' : 'ADMIN DASHBOARD'}
                     </p>
-                    <p className="mt-1.5 text-[14px] text-white/90">{subtitle}</p>
+                    <p className="mt-2 text-[14px] text-white/90">{subtitle}</p>
                   </button>
                 )
               })}
@@ -153,15 +153,15 @@ export function LoginPage() {
 
         {activePortal && (
           <div>
-            <h1 className="mb-3 text-center text-[48px] font-extrabold leading-tight tracking-tight text-slate-700 whitespace-nowrap">
+            <h1 className="mb-4 text-center text-[46px] font-extrabold leading-tight tracking-[-0.03em] text-slate-700 whitespace-nowrap">
               Automatic Timetable Management System
             </h1>
-            <Card className="mx-auto mt-11 w-full max-w-[400px] overflow-hidden border-slate-300 bg-white/95 shadow-lg">
-              <CardHeader className={`bg-gradient-to-r py-9 text-white ${portalTheme.header}`}>
+            <Card className="mx-auto mt-10 w-full max-w-[360px] overflow-hidden border-slate-200/70 bg-white shadow-[0_18px_40px_rgba(15,23,42,0.12)]">
+              <CardHeader className={`bg-gradient-to-r py-8 text-white ${portalTheme.header}`}>
                 <div className={`mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full ${portalTheme.icon}`}>
                   <Shield size={16} />
                 </div>
-                <CardTitle className="text-center text-[34px] font-semibold text-white">{activePortal.title}</CardTitle>
+                <CardTitle className="text-center text-[21px] font-semibold text-white">{activePortal.title}</CardTitle>
                 <CardDescription className={`text-center text-[12px] ${portalTheme.description}`}>
                   {activePortal.key === 'admin'
                     ? 'Secure access for system administrators'
@@ -170,8 +170,8 @@ export function LoginPage() {
                       : 'Secure access for students'}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="bg-[#f2f4f8] px-6 py-8">
-                <form onSubmit={onSubmit} className="space-y-5">
+              <CardContent className="bg-white px-6 py-7">
+                <form onSubmit={onSubmit} className="space-y-4">
                   <div>
                     <Label className="text-[13px] font-medium text-slate-600">Email</Label>
                     <Input
@@ -179,7 +179,7 @@ export function LoginPage() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="mt-2 h-12 rounded-full border-0 bg-slate-200/90 px-4 shadow-inner"
+                      className="mt-2 h-11 rounded-[12px] border-slate-200/70 bg-slate-50 px-4 shadow-sm"
                     />
                   </div>
                   <div>
@@ -190,7 +190,7 @@ export function LoginPage() {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
-                        className="h-12 rounded-full border-0 bg-slate-200/90 px-4 pr-12 shadow-inner"
+                        className="h-11 rounded-[12px] border-slate-200/70 bg-slate-50 px-4 pr-12 shadow-sm"
                       />
                       <button
                         type="button"
@@ -202,10 +202,10 @@ export function LoginPage() {
                       </button>
                     </div>
                   </div>
-                  <Button type="submit" className="h-11 w-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-[16px] text-white hover:from-blue-700 hover:to-indigo-700" disabled={loading}>
+                  <Button type="submit" className="h-11 w-full rounded-[12px] bg-gradient-to-r from-blue-600 to-indigo-600 text-[15px] text-white hover:from-blue-700 hover:to-indigo-700" disabled={loading}>
                     {loading ? 'Signing in...' : 'Login to Dashboard'}
                   </Button>
-                  <Button type="button" variant="outline" className="h-10 w-full rounded-full border-slate-300 bg-white/30 text-[15px] hover:bg-slate-200" onClick={resetPortal}>
+                  <Button type="button" variant="outline" className="h-10 w-full rounded-[12px] border-slate-200 bg-white text-[15px] hover:bg-slate-50" onClick={resetPortal}>
                     Go back
                   </Button>
                 </form>

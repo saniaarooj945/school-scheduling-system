@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { TableEmptyState } from '@/components/shared/table-empty-state'
 import { requestJson } from '@/lib/api'
 import { toast } from 'sonner'
 
@@ -112,14 +113,18 @@ export function FacultySubstitutionPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {requests.map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell>{row.course_code} - {row.course_name}</TableCell>
-                  <TableCell>{row.requested_date}</TableCell>
-                  <TableCell>{row.status}</TableCell>
-                  <TableCell>{row.admin_notes || '-'}</TableCell>
-                </TableRow>
-              ))}
+              {requests.length === 0 ? (
+                <TableEmptyState colSpan={4} title="No requests yet" message="Your substitution requests will appear here." />
+              ) : (
+                requests.map((row) => (
+                  <TableRow key={row.id}>
+                    <TableCell>{row.course_code} - {row.course_name}</TableCell>
+                    <TableCell>{row.requested_date}</TableCell>
+                    <TableCell>{row.status}</TableCell>
+                    <TableCell>{row.admin_notes || '-'}</TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>

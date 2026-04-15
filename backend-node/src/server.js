@@ -3,7 +3,7 @@ import express from 'express'
 import cors from 'cors'
 import authRoutes from './routes/authRoutes.js'
 import actionRoutes from './routes/actionRoutes.js'
-import { connectDB } from './config/db.js'
+import { connectDBWithRetry } from './config/db.js'
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js'
 
 dotenv.config()
@@ -59,11 +59,5 @@ function startServer(startPort) {
   tryListen(startPort)
 }
 
-connectDB()
-  .then(() => {
-    startServer(preferredPort)
-  })
-  .catch((error) => {
-    console.error('Failed to connect to MongoDB', error)
-    process.exit(1)
-  })
+startServer(preferredPort)
+connectDBWithRetry()

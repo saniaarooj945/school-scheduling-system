@@ -28,18 +28,18 @@ export function FacultyAvailabilityPage() {
   }
 
   return (
-    <Card className="border-slate-200 bg-[#f4f6fb] shadow-sm">
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold text-slate-800">Availability Preferences</CardTitle>
+    <Card className="rounded-[14px] border-slate-200/70 bg-white shadow-[0_1px_4px_rgba(15,23,42,0.06)]">
+      <CardHeader className="px-5 pb-3 pt-5 sm:px-6">
+        <CardTitle className="text-[28px] font-bold leading-none tracking-[-0.02em] text-slate-800">Availability Preferences</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-4 px-5 pb-5 sm:px-6">
         <Textarea
-          className="min-h-36 border-slate-300 bg-white"
+          className="min-h-36 border-slate-200/70 bg-white"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Example: No classes on Friday after 12 PM"
         />
-        <Button className="h-10 rounded-md bg-blue-600 text-white transition-all duration-200 hover:bg-blue-700" onClick={save}>
+        <Button className="h-10 rounded-[10px] bg-blue-600 px-5 text-white transition-all duration-200 hover:bg-blue-700" onClick={save}>
           Save Preferences
         </Button>
       </CardContent>

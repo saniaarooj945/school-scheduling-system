@@ -33,29 +33,29 @@ export function AdminDashboardPage() {
   }, [])
 
   return (
-    <div className="space-y-5">
-      <div>
-        <h2 className="text-[30px] font-bold leading-none text-slate-800">Admin Dashboard</h2>
-        <p className="mt-1 text-[12px] text-slate-500">Manage courses, faculty, rooms, and generate timetables.</p>
+    <div className="space-y-7">
+      <div className="pt-1">
+        <h2 className="text-[28px] font-bold leading-none tracking-[-0.02em] text-slate-800">Admin Dashboard</h2>
+        <p className="mt-2.5 text-[13px] text-slate-500">Manage courses, faculty, rooms, and generate timetables.</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-x-3 gap-y-4 md:grid-cols-3 xl:grid-cols-6">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
         {cards.map((item) => (
-          <Card key={item.key} className="border-slate-200 shadow-none">
-            <CardContent className="p-4 text-center">
-              <p className="text-[42px] font-extrabold leading-none text-blue-600">{counts[item.key] ?? '-'}</p>
-              <p className="mt-1 text-[12px] text-slate-500">{item.title}</p>
+          <Card key={item.key} className="rounded-[12px] border-slate-200/70 shadow-[0_1px_4px_rgba(15,23,42,0.06)]">
+            <CardContent className="flex min-h-[124px] flex-col items-center justify-center p-5 text-center">
+              <p className="text-[48px] font-extrabold leading-none tracking-[-0.03em] text-[#1f6ff4]">{counts[item.key] ?? '-'}</p>
+              <p className="mt-1.5 text-[13px] font-medium text-slate-500">{item.title}</p>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <Card className="border-slate-200 shadow-none">
-        <CardHeader className="pb-2 pt-4">
-          <CardTitle className="text-[24px] leading-none">Quick actions</CardTitle>
+      <Card className="rounded-[12px] border-slate-200/70 shadow-[0_1px_4px_rgba(15,23,42,0.06)]">
+        <CardHeader className="px-5 pb-2 pt-5">
+          <CardTitle className="text-[20px] font-bold leading-none tracking-[-0.01em] text-slate-800">Quick actions</CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-[12px] text-slate-500">
+        <CardContent className="px-5 pb-5">
+          <p className="text-[13px] leading-6 text-slate-500">
             Use the navigation bar to open{' '}
             <Link className="text-blue-600 underline underline-offset-2" to="/admin/departments">Departments</Link>,{' '}
             <Link className="text-blue-600 underline underline-offset-2" to="/admin/courses">Courses</Link>,{' '}
